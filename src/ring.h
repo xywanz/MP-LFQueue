@@ -56,7 +56,7 @@ typedef struct
  */
 inline __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t init_head)
 {
-    uint32_t i;
+    uint64_t i;
     ring->node_count = count;
     ring->node_count_mask = count - 1;
     ring->head_seq = init_head;

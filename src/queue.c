@@ -15,7 +15,6 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count)
         uint64_t queue_size = 0;
         uint64_t ring_size, node_size;
         LFHeader *header;
-        LFRing *ring;
         char *m;
 
         count = upper_power_of_two(count);
@@ -45,10 +44,10 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count)
         header->key = key;
 
         m += sizeof(LFHeader);
-        LFRing_init(ring, count, count);
+        LFRing_init((LFRing *)m, count, count);
         
         m += ring_size;
-        LFRing_init(ring, count, 0);
+        LFRing_init((LFRing *)m, count, 0);
 
         m += ring_size;
         memset(m, 0, node_size * count);

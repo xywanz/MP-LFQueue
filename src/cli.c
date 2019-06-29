@@ -133,11 +133,28 @@ int main(int argc, char *argv[])
 {
         int opt;
 
-        while ((opt = getopt(argc, argv, "c:k:s:t:")) != -1) {
+        const char *usage = "Usage: [-c:hk:s:t:]\n"
+                "\t./cli create [-k key] [-s size] [-c count]\n"
+                "\t./cli destroy [-k key]\n"
+                "\t./cli reset [-k key]"
+                "\t./cli status [-k key]\n"
+                "\t./cli monitor [-k key]\n"
+                "\t./cli produce [-k key] [-t nthread]\n"
+                "\t./cli consume [-k key] [-t nthread]\n";
+
+        if (argc <= 2) {
+                printf("%s", usage);
+                exit(-1);
+        }
+
+        while ((opt = getopt(argc, argv, "c:hk:s:t:")) != -1) {
                 switch (opt) {
                 case 'c':
                         count = atoi(optarg);
                         break;
+                case 'h':
+                        printf("%s", usage);
+                        exit(0);
                 case 'k':
                         key = atoi(optarg);
                         break;
