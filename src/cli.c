@@ -11,10 +11,11 @@ int key = -1;
 int count = -1;
 int size = -1;
 int nthread = 1;
+bool overite = false;
 
 void create_mq()
 {
-        if (LFQueue_create(key, size, count) != 0) {
+        if (LFQueue_create(key, size, count, overite) != 0) {
                 perror("[FAILURE] Error occured in LFQueue_create");
                 exit(-1);
         }
@@ -34,7 +35,7 @@ void *produce_task(void *arg)
         LFNode *node = (LFNode *)malloc(queue->header->node_total_size);
         node->size = queue->header->node_data_size;
         for (;;)
-                LFQueue_push(queue, node, true);
+                LFQueue_push(queue, node);
 }
 
 void *consume_task(void *arg)
@@ -133,8 +134,8 @@ int main(int argc, char *argv[])
 {
         int opt;
 
-        const char *usage = "Usage: [-c:hk:s:t:]\n"
-                "\t./cli create [-k key] [-s size] [-c count]\n"
+        const char *usage = "Usage: [-c:hk:os:t:]\n"
+                "\t./cli create [-k key] [-s size] [-c count] [-o]\n"
                 "\t./cli destroy [-k key]\n"
                 "\t./cli reset [-k key]"
                 "\t./cli status [-k key]\n"
@@ -147,7 +148,7 @@ int main(int argc, char *argv[])
                 exit(-1);
         }
 
-        while ((opt = getopt(argc, argv, "c:hk:s:t:")) != -1) {
+        while ((opt = getopt(argc, argv, "c:hk:os:t:")) != -1) {
                 switch (opt) {
                 case 'c':
                         count = atoi(optarg);
@@ -157,6 +158,9 @@ int main(int argc, char *argv[])
                         exit(0);
                 case 'k':
                         key = atoi(optarg);
+                        break;
+                case 'o':
+                        overite = true;
                         break;
                 case 's':
                         size = atoi(optarg);

@@ -42,7 +42,7 @@ typedef atomic_uint_fast64_t   LFRingNode;
  */
 typedef struct
 {
-    uint32_t node_count;
+    uint64_t node_count;
     uint64_t node_count_mask CACHE_ALIGNED;
     atomic_uint_fast64_t head_seq CACHE_ALIGNED;
     atomic_uint_fast64_t tail_seq CACHE_ALIGNED;

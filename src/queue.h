@@ -27,8 +27,10 @@ typedef struct
 {
     uint64_t        magic;
     uint64_t        node_data_size;
-    uint32_t        node_count;
+    uint64_t        node_count;
     uint64_t        node_total_size;
+    bool            overwrite;
+    uint32_t        padding;
 
     volatile bool   pause;
     int             key;
@@ -63,18 +65,66 @@ typedef struct
     char *nodes;
 } LFQueue;
 
+/*
+    分配共享内存，创建队列
+    @param key 该队列的唯一标识，其他进程通过该key来获取队列
+    @param data_size 每条数据的最大长度，会向上扩展为64的倍数
+    @param count 队列能容纳的最大数据条数，会向上扩展为2的幂
+    @return 0表示创建成功，-1表示创建失败
+ */
+int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite);
 
-int LFQueue_create(int key, uint64_t data_size, uint32_t count);
+/*
+    销毁队列，回收共享内存
+    @param key 队列的唯一表示
+    @return 0表示成功销毁表示为key的队列，-1表示销毁失败（共享内存不存在等原因导致）
+ */
 int LFQueue_destroy(int key);
+
+/*
+    将队列重置未初始化后的状态
+ */
 void LFQueue_reset(LFQueue *queue);
+
+/*
+    对于一块已创建并初始化成为队列的内存，调用该函数将队列注册到queue中
+ */
 int LFQueue_init(LFQueue *queue, void *mem);
+
+/*
+    分配一个LFQueue结构体并打开队列
+ */
 LFQueue *LFQueue_open(int key);
+
+/*
+    关闭一个队列并回收LFQueue
+ */
 void LFQueue_close(LFQueue *queue);
+
+/*
+    暂停当前队列的所有入队出队及查看操作，因为有可能当前已经有进程在读写了，调用该函数后需要
+    等待一段时间后才能视为已暂停
+ */
 void LFQueue_pause(LFQueue *queue);
+
+/*
+    从暂停中恢复
+ */
 void LFQueue_resume(LFQueue *queue);
+
+/*
+    打印当前队列信息，如需要准确数据，先将队列暂停并等待100毫秒左右
+ */
 void LFQueue_print(LFQueue *queue);
 
-int LFQueue_push(LFQueue *queue, LFNode *node, bool overwrite);
+/*
+    入队
+ */
+int LFQueue_push(LFQueue *queue, LFNode *node);
+
+/*
+    出队
+ */
 int LFQueue_pop(LFQueue *queue, LFNode *node);
 
 #endif

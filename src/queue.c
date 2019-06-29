@@ -8,7 +8,7 @@
 #include <string.h>
 
 
-int LFQueue_create(int key, uint64_t data_size, uint32_t count)
+int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 {
         int shmid;
         uint64_t i;
@@ -37,6 +37,7 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count)
         header->node_count = count;
         header->node_data_size = data_size;
         header->node_total_size = node_size;
+        header->overwrite = overwrite;
         header->key = key;
 
         m += sizeof(LFHeader);
@@ -154,9 +155,6 @@ void LFQueue_print(LFQueue *queue)
         LFHeader *header = queue->header;
         LFRing *ring;
 
-        LFQueue_pause(queue);
-        usleep(1000 * 100);
-
         printf("LFQueue\n");
 
         printf("\tLFHeader:\n");
@@ -165,33 +163,32 @@ void LFQueue_print(LFQueue *queue)
 
         ring = queue->resc_ring;
         printf("\tResource LFRing:\n");
-        printf("\t\tNode Count:\t%u\n", ring->node_count);
+        printf("\t\tNode Count:\t%lu\n", ring->node_count);
         printf("\t\tHead Seq:\t%lu\n", ring->head_seq);
         printf("\t\tTail Seq:\t%lu\n", ring->tail_seq);
 
         ring = queue->node_ring;
         printf("\tNode LFRing:\n");
-        printf("\t\tNode Count:\t%u\n", ring->node_count);
+        printf("\t\tNode Count:\t%lu\n", ring->node_count);
         printf("\t\tHead Seq:\t%lu\n", ring->head_seq);
         printf("\t\tTail Seq:\t%lu\n", ring->tail_seq);
-
-        LFQueue_resume(queue);
 }
 
-int LFQueue_push(LFQueue *queue, LFNode *node, bool overwrite)
+int LFQueue_push(LFQueue *queue, LFNode *node)
 {
         uint32_t id;
         LFNode *n;
+        LFHeader *header = queue->header;
 
-        if (node->size > queue->header->node_data_size)
+        if (node->size > header->node_data_size)
                 return -1;
 
-        if (queue->header->pause)
+        if (header->pause)
                 return -3;
 
         id = LFRing_pop(queue->resc_ring, NULL);
         if (id == LFRING_INVALID_ID) {
-                if (overwrite) {
+                if (header->overwrite) {
                         id = LFRing_pop(queue->node_ring, NULL);
                         if (id == LFRING_INVALID_ID)
                                 return -1;
@@ -200,7 +197,7 @@ int LFQueue_push(LFQueue *queue, LFNode *node, bool overwrite)
                 }
         }
 
-        n = (LFNode *)(queue->nodes + queue->header->node_total_size * id);
+        n = (LFNode *)(queue->nodes + header->node_total_size * id);
         memcpy(n, node, sizeof(LFNode) + node->size);
         LFRing_push(queue->node_ring, id);
         
@@ -211,14 +208,15 @@ int LFQueue_pop(LFQueue *queue, LFNode *node)
 {
         uint32_t id;
         LFNode *n;
+        LFHeader *header = queue->header;
 
         do {
-                if (queue->header->pause)
+                if (header->pause)
                         return -3;
                 id = LFRing_pop(queue->node_ring, NULL);
         } while (id == LFRING_INVALID_ID);
 
-        n = (LFNode *)(queue->nodes + queue->header->node_total_size * id);
+        n = (LFNode *)(queue->nodes + header->node_total_size * id);
         memcpy(node, n, sizeof(LFNode) + n->size);
         LFRing_push(queue->resc_ring, id);
 
