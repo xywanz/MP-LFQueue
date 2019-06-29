@@ -78,7 +78,7 @@ void LFQueue_reset(LFQueue *queue)
         memset(m, 0, node_size * count);
 }
 
-static int _LFQueue_initFromMem(LFQueue *queue, void *mem)
+int LFQueue_init(LFQueue *queue, void *mem)
 {
         char *m = (char *)mem;
         uint64_t ring_total_size;
@@ -129,7 +129,7 @@ LFQueue *LFQueue_open(int key)
                 return NULL;
         }
 
-        if (_LFQueue_initFromMem(queue, m) != 0) {
+        if (LFQueue_init(queue, m) != 0) {
                 shmdt(m);
                 free(queue);
                 return NULL;

@@ -67,6 +67,7 @@ typedef struct
 int LFQueue_create(int key, uint64_t data_size, uint32_t count);
 int LFQueue_destroy(int key);
 void LFQueue_reset(LFQueue *queue);
+int LFQueue_init(LFQueue *queue, void *mem);
 LFQueue *LFQueue_open(int key);
 void LFQueue_close(LFQueue *queue);
 void LFQueue_pause(LFQueue *queue);
