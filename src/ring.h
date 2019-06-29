@@ -6,36 +6,44 @@
 
 #define CACHE_ALIGNED   __attribute__((aligned(64)))
 
+#define LFRING_MAX_BUSYLOOP_COUNT   2
 #define LFRING_INVALID_ID           0xffffffffUL
-#define LFRING_MAX_BUSYLOOP_COUNT   16
 #define LFRING_MASK_LOW32           0xffffffffUL
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static __always_inline uint32_t power_of_two(uint32_t x)
+typedef atomic_uint_fast64_t   LFRingNode;
+
+static __always_inline uint32_t upper_power_of_two(uint32_t x)
 {
-    return 0;
+    --x;
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+    x |= (x >> 8);
+    x |= (x >> 16);
+    return x + 1;
 }
 
 typedef struct
 {
-    uint64_t node_count CACHE_ALIGNED;
+    uint32_t node_count;
     uint64_t node_count_mask CACHE_ALIGNED;
     atomic_uint_fast64_t head_seq CACHE_ALIGNED;
     atomic_uint_fast64_t tail_seq CACHE_ALIGNED;
-    atomic_uint_fast64_t nodes[] CACHE_ALIGNED;
+    LFRingNode nodes[] CACHE_ALIGNED;
 } LFRing;
 
-__always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
+inline __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
     uint64_t cur_head;
     uint64_t cur_node, expected_node, new_node;
     uint64_t mask = ring->node_count_mask;
-    atomic_uint_fast64_t *atom_cur_node;
+    LFRingNode *atom_cur_node;
     
     for (;;) {
         cur_head = ring->head_seq;
@@ -50,6 +58,7 @@ __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
             busy_loop = 0;
             continue;
         }
+
         if (expired_node == cur_node) {
             ++busy_loop;
             if (busy_loop >= LFRING_MAX_BUSYLOOP_COUNT) {
@@ -59,6 +68,7 @@ __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
             }
         } else {
             expired_node = cur_node;
+            busy_loop = 0;
         }
     }
 
@@ -66,22 +76,28 @@ __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
     return cur_head;
 }
 
-__always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
+inline __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
 {
-    uint32_t id;
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
-    uint64_t cur_tail;
+    uint64_t cur_head, cur_tail;
     uint64_t cur_node, expected_node, new_node;
     uint64_t mask = ring->node_count_mask;
-    atomic_uint_fast64_t *atom_cur_node;
+    LFRingNode *atom_cur_node;
 
     for (;;) {
-        if (ring->head_seq == ring->tail_seq)
-            return LFRING_INVALID_ID;
+        __asm__ __volatile__ ("lfence" : : : "memory");
         cur_tail = ring->tail_seq;
+        cur_head = ring->head_seq;
+        if (cur_tail == cur_head)
+            return LFRING_INVALID_ID;
+
+        if (cur_tail > cur_head)
+            continue;
+
         atom_cur_node = &ring->nodes[cur_tail & mask];
         cur_node = *atom_cur_node;
+
         if ((cur_tail & LFRING_MASK_LOW32) == (cur_node >> 32) && (cur_node & LFRING_MASK_LOW32) != LFRING_INVALID_ID) {
             new_node = ((cur_tail + ring->node_count) << 32) | LFRING_INVALID_ID;
             if (atomic_compare_exchange_weak(atom_cur_node, &cur_node, new_node))
@@ -90,6 +106,7 @@ __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
             busy_loop = 0;
             continue;
         }
+
         if (expired_node == cur_node) {
             ++busy_loop;
             if (busy_loop >= LFRING_MAX_BUSYLOOP_COUNT) {
@@ -99,6 +116,7 @@ __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
             }
         } else {
             expired_node = cur_node;
+            busy_loop = 0;
         }
     }
 
@@ -108,7 +126,7 @@ __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
         *out_seq = cur_tail;
     }
 
-    return id;
+    return cur_node & LFRING_MASK_LOW32;
 }
 
 #ifdef __cplusplus
