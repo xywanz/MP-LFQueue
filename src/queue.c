@@ -166,12 +166,14 @@ void LFQueue_print(LFQueue *queue)
         printf("\t\tNode Count:\t%lu\n", ring->node_count);
         printf("\t\tHead Seq:\t%lu\n", ring->head_seq);
         printf("\t\tTail Seq:\t%lu\n", ring->tail_seq);
+        printf("\tAvailable Nodes:\t%lu\n", ring->head_seq - ring->tail_seq);
 
         ring = queue->node_ring;
         printf("\tNode LFRing:\n");
         printf("\t\tNode Count:\t%lu\n", ring->node_count);
         printf("\t\tHead Seq:\t%lu\n", ring->head_seq);
         printf("\t\tTail Seq:\t%lu\n", ring->tail_seq);
+        printf("\tAvailable Nodes:\t%lu\n", ring->head_seq - ring->tail_seq);
 }
 
 int LFQueue_push(LFQueue *queue, LFNode *node)

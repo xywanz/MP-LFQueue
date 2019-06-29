@@ -12,6 +12,7 @@ int count = -1;
 int size = -1;
 int nthread = 1;
 bool overite = false;
+bool pause_before_print = false;
 
 void create_mq()
 {
@@ -55,13 +56,12 @@ void produce()
                 exit(-1);
         }
 
-        for (i = 0; i < nthread; ++i) {
+        for (i = 0; i < nthread - 1; ++i) {
                 pthread_t th;
                 pthread_create(&th, NULL, produce_task, NULL);
         }
 
-        for (;;)
-                sleep(60);
+        produce_task(NULL);
 }
 
 void consume()
@@ -74,13 +74,12 @@ void consume()
                 exit(-1);
         }
 
-        for (i = 0; i < nthread; ++i) {
+        for (i = 0; i < nthread - 1; ++i) {
                 pthread_t th;
                 pthread_create(&th, NULL, consume_task, NULL);
         }
 
-        for (;;)
-                sleep(60);
+        consume_task(NULL);
 }
 
 void print_mq()
@@ -91,7 +90,15 @@ void print_mq()
                 exit(-1);
         }
 
-        LFQueue_print(queue);  
+        if (pause_before_print) {
+                LFQueue_pause(queue);
+                usleep(100 * 1000);
+                LFQueue_print(queue); 
+                LFQueue_resume(queue);
+        } else {
+                LFQueue_print(queue);
+        }
+        
 }
 
 void monitor()
@@ -134,7 +141,7 @@ int main(int argc, char *argv[])
 {
         int opt;
 
-        const char *usage = "Usage: [-c:hk:os:t:]\n"
+        const char *usage = "Usage: [-c:hk:ops:t:]\n"
                 "\t./cli create [-k key] [-s size] [-c count] [-o]\n"
                 "\t./cli destroy [-k key]\n"
                 "\t./cli reset [-k key]"
@@ -148,7 +155,7 @@ int main(int argc, char *argv[])
                 exit(-1);
         }
 
-        while ((opt = getopt(argc, argv, "c:hk:os:t:")) != -1) {
+        while ((opt = getopt(argc, argv, "c:hk:ops:t:")) != -1) {
                 switch (opt) {
                 case 'c':
                         count = atoi(optarg);
@@ -161,6 +168,9 @@ int main(int argc, char *argv[])
                         break;
                 case 'o':
                         overite = true;
+                        break;
+                case 'p':
+                        pause_before_print = true;
                         break;
                 case 's':
                         size = atoi(optarg);
