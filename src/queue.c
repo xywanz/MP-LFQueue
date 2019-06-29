@@ -26,15 +26,11 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count)
         queue_size += ring_size * 2;
         queue_size += node_size * count;
 
-        if ((shmid = shmget(key, queue_size, IPC_CREAT | IPC_EXCL | 0666)) < 0) {
-                perror("Error occured in shm create");
+        if ((shmid = shmget(key, queue_size, IPC_CREAT | IPC_EXCL | 0666)) < 0)
                 return -1;
-        }
 
-        if ((m = (char *)shmat(shmid, NULL, 0)) == NULL) {
-                perror("Error occured in shm at");
+        if ((m = (char *)shmat(shmid, NULL, 0)) == NULL)
                 return -1;
-        }
 
         header = (LFHeader *)m;
         header->magic = QUEUE_MAGIC;
@@ -114,15 +110,11 @@ LFQueue *LFQueue_open(int key)
         char *m;
         LFQueue *queue;
 
-        if ((shmid = shmget(key, 0, 0)) < 0) {
-                perror("Error occured in shm get");
+        if ((shmid = shmget(key, 0, 0)) < 0)
                 return NULL;
-        }
 
-        if ((m = shmat(shmid, NULL, 0)) == NULL) {
-                perror("Error occured in shm at");
+        if ((m = shmat(shmid, NULL, 0)) == NULL)
                 return NULL;
-        }
 
         if ((queue = malloc(sizeof(LFQueue))) == NULL) {
                 shmdt(m);
