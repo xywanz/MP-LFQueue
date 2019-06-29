@@ -69,22 +69,10 @@ void LFQueue_reset(LFQueue *queue)
         m = (char *)queue->header;
 
         m += sizeof(LFHeader);
-        ring = (LFRing *)m;
-        ring->node_count = count;
-        ring->node_count_mask = count - 1;
-        ring->head_seq = count;
-        ring->tail_seq = 0;
-        for(i = 0; i < count; ++i)
-                ring->nodes[i] = (i << 32) | i;
+        LFRing_init((LFRing *)m, count, count);
         
         m += ring_size;
-        ring = (LFRing *)m;
-        ring->node_count = count;
-        ring->node_count_mask = count - 1;
-        ring->head_seq = 0;
-        ring->tail_seq = 0;
-        for(i = 0; i < count; ++i)
-                ring->nodes[i] = (i << 32) | LFRING_INVALID_ID;
+        LFRing_init((LFRing *)m, count, 0);
 
         m += ring_size;
         memset(m, 0, node_size * count);
