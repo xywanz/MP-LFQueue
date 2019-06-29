@@ -45,22 +45,10 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count)
         header->key = key;
 
         m += sizeof(LFHeader);
-        ring = (LFRing *)m;
-        ring->node_count = count;
-        ring->node_count_mask = count - 1;
-        ring->head_seq = count;
-        ring->tail_seq = 0;
-        for(i = 0; i < count; ++i)
-                ring->nodes[i] = (i << 32) | i;
+        LFRing_init(ring, count, count);
         
         m += ring_size;
-        ring = (LFRing *)m;
-        ring->node_count = count;
-        ring->node_count_mask = count - 1;
-        ring->head_seq = 0;
-        ring->tail_seq = 0;
-        for(i = 0; i < count; ++i)
-                ring->nodes[i] = (i << 32) | LFRING_INVALID_ID;
+        LFRing_init(ring, count, 0);
 
         m += ring_size;
         memset(m, 0, node_size * count);
@@ -220,7 +208,7 @@ int LFQueue_push(LFQueue *queue, LFNode *node, bool overwrite)
                 return -1;
 
         if (queue->header->pause)
-                return -2;
+                return -3;
 
         id = LFRing_pop(queue->resc_ring, NULL);
         if (id == LFRING_INVALID_ID) {
@@ -229,7 +217,7 @@ int LFQueue_push(LFQueue *queue, LFNode *node, bool overwrite)
                         if (id == LFRING_INVALID_ID)
                                 return -1;
                 } else {
-                        return -1;
+                        return -2;
                 }
         }
 
@@ -247,7 +235,7 @@ int LFQueue_pop(LFQueue *queue, LFNode *node)
 
         do {
                 if (queue->header->pause)
-                        return -2;
+                        return -3;
                 id = LFRing_pop(queue->node_ring, NULL);
         } while (id == LFRING_INVALID_ID);
 
