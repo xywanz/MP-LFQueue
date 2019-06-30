@@ -6,9 +6,7 @@
 #endif
 
 #include <stdbool.h>
-
 #include "ring.h"
-
 
 #define QUEUE_MAGIC 1709394
 
@@ -68,12 +66,12 @@ typedef struct
 /*
     入队
  */
-int LFQueue_push(LFQueue *queue, void *buf, uint64_t size);
+int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size);
 
 /*
     出队
  */
-int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size);
+int64_t LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size);
 
 /*
     分配共享内存，创建队列

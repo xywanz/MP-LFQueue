@@ -8,9 +8,9 @@
 #include <string.h>
 
 
-int LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
+int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
 {
-        uint32_t id;
+        int64_t id;
         LFNode *n;
         LFHeader *header = queue->header;
 
@@ -21,10 +21,10 @@ int LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
                 return -3;
 
         id = LFRing_pop(queue->resc_ring, NULL);
-        if (id == LFRING_INVALID_ID) {
+        if (id < 0) {
                 if (header->overwrite) {
                         id = LFRing_pop(queue->node_ring, NULL);
-                        if (id == LFRING_INVALID_ID)
+                        if (id < 0)
                                 return -1;
                 } else {
                         return -2;
@@ -34,21 +34,20 @@ int LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
         n->size = size;
         memcpy(n->data, buf, size);
-        LFRing_push(queue->node_ring, id);
-        
-        return 0;
+        return LFRing_push(queue->node_ring, id);
 }
 
-int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
+int64_t LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
 {
-        uint32_t id;
+        int64_t id;
+        int64_t seq;
         LFNode *n;
         LFHeader *header = queue->header;
 
         do {
                 if (header->pause)
                         return -3;
-                id = LFRing_pop(queue->node_ring, NULL);
+                id = LFRing_pop(queue->node_ring, &seq);
         } while (id == LFRING_INVALID_ID);
 
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
@@ -58,14 +57,12 @@ int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
                 *size = n->size;
 
         LFRing_push(queue->resc_ring, id);
-
-        return 0;
+        return seq;
 }
 
 int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 {
         int shmid;
-        uint64_t i;
         uint64_t queue_size = 0;
         uint64_t ring_size, node_size;
         LFHeader *header;
@@ -108,11 +105,9 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 
 void LFQueue_reset(LFQueue *queue)
 {
-        uint64_t i;
         uint32_t count = queue->header->node_count;
         uint64_t data_size = queue->header->node_data_size;
         uint64_t ring_size, node_size;
-        LFRing *ring;
         char *m;
 
         ring_size = sizeof(LFRing) + sizeof(LFRingNode) * count;

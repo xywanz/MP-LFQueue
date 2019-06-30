@@ -70,7 +70,7 @@ inline __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t i
 /*
     索引入队，返回该索引的序列号
  */
-inline __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
+inline __always_inline int64_t LFRing_push(LFRing *ring, uint32_t id)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
@@ -122,12 +122,12 @@ inline __always_inline uint32_t LFRing_push(LFRing *ring, uint32_t id)
 /*
     索引出队，out_seq可用于获取索引的序列号
  */
-inline __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
+inline __always_inline int64_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
     uint64_t cur_head, cur_tail;
-    uint64_t cur_node, expected_node, new_node;
+    uint64_t cur_node, new_node;
     uint64_t mask = ring->node_count_mask;
     LFRingNode *atom_cur_node;
 
@@ -136,7 +136,7 @@ inline __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
         cur_tail = ring->tail_seq;
         cur_head = ring->head_seq;
         if (cur_tail == cur_head)
-            return LFRING_INVALID_ID;
+            return -1;
 
         if (cur_tail > cur_head)
             continue;
