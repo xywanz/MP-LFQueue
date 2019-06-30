@@ -19,7 +19,7 @@
  */
 typedef struct
 {
-    uint32_t size;
+    uint64_t size;
     char data[] CACHE_ALIGNED;
 } LFNode;
 
@@ -68,12 +68,12 @@ typedef struct
 /*
     入队
  */
-int LFQueue_push(LFQueue *queue, LFNode *node);
+int LFQueue_push(LFQueue *queue, void *buf, uint64_t size);
 
 /*
     出队
  */
-int LFQueue_pop(LFQueue *queue, LFNode *node);
+int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size);
 
 /*
     分配共享内存，创建队列

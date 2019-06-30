@@ -8,13 +8,13 @@
 #include <string.h>
 
 
-int LFQueue_push(LFQueue *queue, LFNode *node)
+int LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
 {
         uint32_t id;
         LFNode *n;
         LFHeader *header = queue->header;
 
-        if (node->size > header->node_data_size)
+        if (size > header->node_data_size)
                 return -1;
 
         if (header->pause)
@@ -32,13 +32,14 @@ int LFQueue_push(LFQueue *queue, LFNode *node)
         }
 
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
-        memcpy(n, node, sizeof(LFNode) + node->size);
+        n->size = size;
+        memcpy(n->data, buf, size);
         LFRing_push(queue->node_ring, id);
         
         return 0;
 }
 
-int LFQueue_pop(LFQueue *queue, LFNode *node)
+int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
 {
         uint32_t id;
         LFNode *n;
@@ -51,7 +52,11 @@ int LFQueue_pop(LFQueue *queue, LFNode *node)
         } while (id == LFRING_INVALID_ID);
 
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
-        memcpy(node, n, sizeof(LFNode) + n->size);
+        memcpy(buf, n->data, n->size);
+        
+        if (size)
+                *size = n->size;
+
         LFRing_push(queue->resc_ring, id);
 
         return 0;

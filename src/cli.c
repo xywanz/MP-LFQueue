@@ -34,17 +34,18 @@ void destroy_mq()
 
 void *produce_task(void *arg)
 {
-        LFNode *node = (LFNode *)malloc(queue->header->node_total_size);
-        node->size = queue->header->node_data_size;
+        uint64_t size = queue->header->node_data_size;
+        void *buf = malloc(size);
         for (;;)
-                LFQueue_push(queue, node);
+                LFQueue_push(queue, buf, size);
 }
 
 void *consume_task(void *arg)
 {
-        LFNode *node = (LFNode *)malloc(queue->header->node_total_size);
+        uint64_t size = queue->header->node_data_size;
+        void *buf = malloc(size);
         for (;;)
-                LFQueue_pop(queue, node);
+                LFQueue_pop(queue, buf, &size);
 }
 
 void produce()
