@@ -76,7 +76,7 @@ static PyObject *PyLFQ_Push(PyLFQ *self, PyObject *args)
         if (size > queue->header->node_data_size)
                 return Py_BuildValue("l", -1L);
 
-        seq = LFQueue_push(self->queue, PyBytes_AsString(bytes), size);
+        seq = LFQueue_push(self->queue, PyBytes_AsString((PyObject *)bytes), size);
         return Py_BuildValue("l", seq);
 }
 
@@ -98,7 +98,7 @@ static PyObject *PyLFQ_Pop(PyLFQ *self, PyObject *args)
         if (size < queue->header->node_data_size)
                 return Py_BuildValue("l", -1L);
 
-        seq = LFQueue_pop(self->queue, PyBytes_AsString(bytes), &size);
+        seq = LFQueue_pop(self->queue, PyBytes_AsString((PyObject *)bytes), &size);
         return Py_BuildValue("(l,l)", seq, size);
 }
 

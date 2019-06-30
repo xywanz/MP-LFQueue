@@ -40,7 +40,7 @@ int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
 int64_t LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
 {
         int64_t id;
-        int64_t seq;
+        int64_t seq = -1L;
         LFNode *n;
         LFHeader *header = queue->header;
 

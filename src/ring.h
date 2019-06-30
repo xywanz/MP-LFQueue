@@ -44,8 +44,8 @@ typedef struct
 {
     uint64_t node_count;
     uint64_t node_count_mask CACHE_ALIGNED;
-    atomic_uint_fast64_t head_seq CACHE_ALIGNED;
-    atomic_uint_fast64_t tail_seq CACHE_ALIGNED;
+    atomic_int_fast64_t head_seq CACHE_ALIGNED;
+    atomic_int_fast64_t tail_seq CACHE_ALIGNED;
     LFRingNode nodes[] CACHE_ALIGNED;
 } LFRing;
 
@@ -122,7 +122,7 @@ inline __always_inline int64_t LFRing_push(LFRing *ring, uint32_t id)
 /*
     索引出队，out_seq可用于获取索引的序列号
  */
-inline __always_inline int64_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
+inline __always_inline int64_t LFRing_pop(LFRing *ring, int64_t *out_seq)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
