@@ -66,6 +66,16 @@ typedef struct
 } LFQueue;
 
 /*
+    入队
+ */
+int LFQueue_push(LFQueue *queue, LFNode *node);
+
+/*
+    出队
+ */
+int LFQueue_pop(LFQueue *queue, LFNode *node);
+
+/*
     分配共享内存，创建队列
     @param key 该队列的唯一标识，其他进程通过该key来获取队列
     @param data_size 每条数据的最大长度，会向上扩展为64的倍数
@@ -127,15 +137,5 @@ int LFQueue_dump(LFQueue *queue, const char *filename);
     queue必须是一个已经完成初始化的队列，且其大小于文件中的队列应该相等（大于也可以）
  */
 int LFQueue_load(LFQueue *queue, const char *filename);
-
-/*
-    入队
- */
-int LFQueue_push(LFQueue *queue, LFNode *node);
-
-/*
-    出队
- */
-int LFQueue_pop(LFQueue *queue, LFNode *node);
 
 #endif
