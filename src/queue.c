@@ -19,7 +19,7 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 
         count = upper_power_of_two(count);
         data_size = (data_size + 63) & ~63;
-        ring_size = sizeof(LFRing) + sizeof(LFRingNode) * count;
+        ring_size = LFRing_size(count);
         node_size = data_size + sizeof(LFNode);
 
         queue_size += sizeof(LFHeader);
@@ -174,6 +174,58 @@ void LFQueue_print(LFQueue *queue)
         printf("\t\tHead Seq:\t%lu\n", ring->head_seq);
         printf("\t\tTail Seq:\t%lu\n", ring->tail_seq);
         printf("\tAvailable Nodes:\t%lu\n", ring->head_seq - ring->tail_seq);
+}
+
+int LFQueue_dump(LFQueue *queue, const char *filename)
+{
+        uint64_t size;
+        LFHeader *header = queue->header;
+        FILE *fp;
+
+        size = sizeof(LFHeader) + 2 * LFRing_size(header->node_count) + header->node_total_size * header->node_count;
+
+        if ((fp = fopen(filename, "wb")) == NULL)
+                return -1;
+
+        LFQueue_pause(queue);
+        usleep(1000 * 100);
+
+        if (fwrite(header, 1, size, fp) != size) {
+                LFQueue_resume(queue);
+                fclose(fp);
+                return -1;
+        }
+
+        LFQueue_resume(queue);
+        fclose(fp);
+        return 0;
+}
+
+int LFQueue_load(LFQueue *queue, const char *filename)
+{
+        uint64_t size;
+        LFHeader *header = queue->header;
+        FILE *fp;
+
+        if ((fp = fopen(filename, "rb")) == NULL)
+                return -1;
+
+        LFQueue_pause(queue);
+        usleep(1000 * 100);
+
+        fseek(fp, 0, SEEK_END);
+        size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        if (fread(header, 1, size, fp) != size) {
+                LFQueue_resume(queue);
+                fclose(fp);
+                return -1;
+        }
+
+        LFQueue_resume(queue);
+        fclose(fp);
+        return 0;
 }
 
 int LFQueue_push(LFQueue *queue, LFNode *node)

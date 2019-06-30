@@ -118,6 +118,17 @@ void LFQueue_resume(LFQueue *queue);
 void LFQueue_print(LFQueue *queue);
 
 /*
+    将当前队列存于文件，函数内部会自动暂停并等待100ms，执行失败并不影响队列的使用。
+ */
+int LFQueue_dump(LFQueue *queue, const char *filename);
+
+/*
+    将存于文件的队列加载到内存中，函数内部会自动暂停并等待100ms，执行失败则原队列不可用。
+    queue必须是一个已经完成初始化的队列，且其大小于文件中的队列应该相等（大于也可以）
+ */
+int LFQueue_load(LFQueue *queue, const char *filename);
+
+/*
     入队
  */
 int LFQueue_push(LFQueue *queue, LFNode *node);
