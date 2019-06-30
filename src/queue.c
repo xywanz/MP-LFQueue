@@ -236,16 +236,11 @@ int LFQueue_dump(LFQueue *queue, const char *filename)
         if ((fp = fopen(filename, "wb")) == NULL)
                 return -1;
 
-        LFQueue_pause(queue);
-        usleep(1000 * 100);
-
         if (fwrite(header, 1, size, fp) != size) {
-                LFQueue_resume(queue);
                 fclose(fp);
                 return -1;
         }
 
-        LFQueue_resume(queue);
         fclose(fp);
         return 0;
 }
@@ -259,20 +254,15 @@ int LFQueue_load(LFQueue *queue, const char *filename)
         if ((fp = fopen(filename, "rb")) == NULL)
                 return -1;
 
-        LFQueue_pause(queue);
-        usleep(1000 * 100);
-
         fseek(fp, 0, SEEK_END);
         size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
         if (fread(header, 1, size, fp) != size) {
-                LFQueue_resume(queue);
                 fclose(fp);
                 return -1;
         }
 
-        LFQueue_resume(queue);
         fclose(fp);
         return 0;
 }

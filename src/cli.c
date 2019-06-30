@@ -13,6 +13,7 @@ int size = -1;
 int nthread = 1;
 bool overite = false;
 bool pause_before_print = false;
+char filename[128] = "lfq.dat";
 
 void create_mq()
 {
@@ -137,28 +138,72 @@ void reset()
         LFQueue_resume(queue);
 }
 
+void dump()
+{
+        queue = LFQueue_open(key);
+        if (!queue) {
+                printf("[FAILURE] Error occured in LFQueue_open\n");
+                exit(-1);
+        }
+
+        LFQueue_pause(queue);
+        usleep(1000 * 100);
+
+        if (LFQueue_dump(queue, filename) != 0) {
+                printf("[FAILURE] Error occured in LFQueue_dump\n");
+                LFQueue_resume(queue);
+                exit(-1);
+        }
+
+        LFQueue_resume(queue);
+}
+
+void load()
+{
+        queue = LFQueue_open(key);
+        if (!queue) {
+                printf("[FAILURE] Error occured in LFQueue_open\n");
+                exit(-1);
+        }
+
+        LFQueue_pause(queue);
+        usleep(1000 * 100);
+
+        if (LFQueue_load(queue, filename) != 0) {
+                printf("[FAILURE] Error occured in LFQueue_load\n");
+                exit(-1);
+        }
+
+        LFQueue_resume(queue);  
+}
+
 int main(int argc, char *argv[])
 {
         int opt;
 
-        const char *usage = "Usage: [-c:hk:ops:t:]\n"
+        const char *usage = "Usage: [-c:f:hk:ops:t:]\n"
                 "\t./cli create [-k key] [-s size] [-c count] [-o]\n"
                 "\t./cli destroy [-k key]\n"
                 "\t./cli reset [-k key]"
                 "\t./cli status [-k key]\n"
                 "\t./cli monitor [-k key]\n"
                 "\t./cli produce [-k key] [-t nthread]\n"
-                "\t./cli consume [-k key] [-t nthread]\n";
+                "\t./cli consume [-k key] [-t nthread]\n"
+                "\t./cli dump [-k key] [-f file]\n"
+                "\t./cli load [-k key] [-f file]\n";
 
         if (argc <= 2) {
                 printf("%s", usage);
                 exit(-1);
         }
 
-        while ((opt = getopt(argc, argv, "c:hk:ops:t:")) != -1) {
+        while ((opt = getopt(argc, argv, "c:f:hk:ops:t:")) != -1) {
                 switch (opt) {
                 case 'c':
                         count = atoi(optarg);
+                        break;
+                case 'f':
+                        strncpy(filename, optarg, 128);
                         break;
                 case 'h':
                         printf("%s", usage);
@@ -196,4 +241,8 @@ int main(int argc, char *argv[])
                 monitor();
         else if (strcmp(argv[argc - 1], "reset") == 0)
                 reset();
+        else if (strcmp(argv[argc - 1], "dump") == 0)
+                dump();
+        else if (strcmp(argv[argc - 1], "load") == 0)
+                load();
 }
