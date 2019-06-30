@@ -185,6 +185,9 @@ inline __always_inline uint32_t LFRing_pop(LFRing *ring, uint64_t *out_seq)
     return cur_node & LFRING_MASK_LOW32;
 }
 
+/*
+        获取LFRing结构体的总大小，count必须为2的幂
+ */
 inline __always_inline uint64_t LFRing_size(uint32_t count)
 {
     return sizeof(LFRingNode) * count + sizeof(LFRing);
