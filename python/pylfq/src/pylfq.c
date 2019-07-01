@@ -60,13 +60,14 @@ static void PyLFQ_Dealloc(PyLFQ *self)
 
 static PyObject *PyLFQ_Push(PyLFQ *self, PyObject *args)
 {
-        int64_t seq;
-        int64_t input_size = -1;
+        int ret;
+        uint64_t seq;
+        uint64_t input_size = -1;
         uint64_t size;
         LFQueue *queue;
         PyBytesObject *bytes;
 
-        if (!PyArg_ParseTuple(args, "S|l", &bytes, &input_size))
+        if (!PyArg_ParseTuple(args, "S|k", &bytes, &input_size))
                 return Py_BuildValue("l", -1L);
 
         if (!bytes)
@@ -80,13 +81,17 @@ static PyObject *PyLFQ_Push(PyLFQ *self, PyObject *args)
         if (size > queue->header->node_data_size)
                 return Py_BuildValue("l", -1L);
 
-        seq = LFQueue_push(self->queue, PyBytes_AsString((PyObject *)bytes), size);
+        do {
+            ret = LFQueue_push(self->queue, PyBytes_AsString((PyObject *)bytes), size, &seq);
+        } while (ret != 0);
+    
         return Py_BuildValue("l", seq);
 }
 
 static PyObject *PyLFQ_Pop(PyLFQ *self, PyObject *args)
 {
-        int64_t seq = -1;
+        int ret;
+        uint64_t seq = -1L;
         uint64_t size;
         LFQueue *queue;
         PyBytesObject *bytes;
@@ -102,7 +107,10 @@ static PyObject *PyLFQ_Pop(PyLFQ *self, PyObject *args)
         if (size < queue->header->node_data_size)
                 return Py_BuildValue("l", -1L);
 
-        seq = LFQueue_pop(self->queue, PyBytes_AsString((PyObject *)bytes), &size);
+        do {
+            ret = LFQueue_pop(self->queue, PyBytes_AsString((PyObject *)bytes), &size, &seq);
+        } while (ret != 0);
+    
         return Py_BuildValue("(l,l)", seq, size);
 }
 
