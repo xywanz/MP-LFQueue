@@ -83,7 +83,7 @@ static PyObject *PyLFQ_Push(PyLFQ *self, PyObject *args)
 
         do {
             ret = LFQueue_push(self->queue, PyBytes_AsString((PyObject *)bytes), size, &seq);
-        } while (ret != 0);
+        } while (ret != 0 && ret != -3);
     
         return Py_BuildValue("l", seq);
 }
@@ -109,7 +109,7 @@ static PyObject *PyLFQ_Pop(PyLFQ *self, PyObject *args)
 
         do {
             ret = LFQueue_pop(self->queue, PyBytes_AsString((PyObject *)bytes), &size, &seq);
-        } while (ret != 0);
+        } while (ret != 0 && ret != -3);
     
         return Py_BuildValue("(l,l)", seq, size);
 }
