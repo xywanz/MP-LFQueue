@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-static __always_inline uint32_t upper_power_of_two(uint32_t x)
+static inline __always_inline uint32_t upper_power_of_two(uint32_t x)
 {
     --x;
     x |= (x >> 1);
@@ -44,8 +44,8 @@ typedef struct
 {
     uint64_t node_count;
     uint64_t node_count_mask CACHE_ALIGNED;
-    atomic_int_fast64_t head_seq CACHE_ALIGNED;
-    atomic_int_fast64_t tail_seq CACHE_ALIGNED;
+    atomic_uint_fast64_t head_seq CACHE_ALIGNED;
+    atomic_uint_fast64_t tail_seq CACHE_ALIGNED;
     LFRingNode nodes[] CACHE_ALIGNED;
 } LFRing;
 
@@ -70,7 +70,7 @@ inline __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t i
 /*
     索引入队，返回该索引的序列号
  */
-inline __always_inline int64_t LFRing_push(LFRing *ring, uint32_t id)
+inline __always_inline uint64_t LFRing_push(LFRing *ring, uint32_t id)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
@@ -122,7 +122,7 @@ inline __always_inline int64_t LFRing_push(LFRing *ring, uint32_t id)
 /*
     索引出队，out_seq可用于获取索引的序列号
  */
-inline __always_inline int64_t LFRing_pop(LFRing *ring, int64_t *out_seq)
+inline __always_inline uint32_t LFRing_pop(LFRing *ring, int64_t *out_seq)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
@@ -136,7 +136,7 @@ inline __always_inline int64_t LFRing_pop(LFRing *ring, int64_t *out_seq)
         cur_tail = ring->tail_seq;
         cur_head = ring->head_seq;
         if (cur_tail == cur_head)
-            return -1;
+            return LFRING_INVALID_ID;
 
         if (cur_tail > cur_head)
             continue;
