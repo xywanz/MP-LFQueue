@@ -8,11 +8,11 @@ struct ModuleState {
 static PyObject *PyLFQ_Create(PyObject *self, PyObject *args)
 {
         int key;
-        long size;
         uint32_t count;
+        uint64_t size;
         PyObject *overwrite = Py_False;
 
-        if (!PyArg_ParseTuple(args, "ilI|O", &key, &size, &count, &overwrite))
+        if (!PyArg_ParseTuple(args, "ikI|O", &key, &size, &count, &overwrite))
                 return Py_False;
 
         if (LFQueue_create(key, size, count, overwrite == Py_False? false : true) != 0) {
