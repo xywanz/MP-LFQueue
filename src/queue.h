@@ -8,6 +8,10 @@
 #include <stdbool.h>
 #include "ring.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define QUEUE_MAGIC 1709394
 
 /*
@@ -135,5 +139,9 @@ int LFQueue_dump(LFQueue *queue, const char *filename);
     queue必须是一个已经完成初始化的队列，且其大小于文件中的队列应该相等（大于也可以）
  */
 int LFQueue_load(LFQueue *queue, const char *filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
