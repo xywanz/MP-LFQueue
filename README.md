@@ -6,7 +6,7 @@
     Welcome to show your better ideas.<br>
 
 ##Usage
-###1. CPP
+###1. C
 ```
 #include "queue.h"
 
@@ -44,4 +44,16 @@ pylfq.pop(msg_out)
 print(msg_out)
 
 pylfq.destroy(1234)
+```
+##Build
+###C
+```
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+```
+###Python
+```
+cd python/pylfq
+python setup.py build_ext --inplace  # or python setup.py install
 ```
