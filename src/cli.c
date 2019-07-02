@@ -37,7 +37,7 @@ void *produce_task(void *arg)
         uint64_t size = queue->header->node_data_size;
         void *buf = malloc(size);
         for (;;)
-                LFQueue_push(queue, buf, size);
+                LFQueue_push(queue, buf, size, NULL);
 }
 
 void *consume_task(void *arg)
@@ -45,7 +45,7 @@ void *consume_task(void *arg)
         uint64_t size = queue->header->node_data_size;
         void *buf = malloc(size);
         for (;;)
-                LFQueue_pop(queue, buf, &size);
+                LFQueue_pop(queue, buf, &size, NULL);
 }
 
 void produce()

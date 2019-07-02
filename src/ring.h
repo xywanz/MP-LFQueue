@@ -2,7 +2,7 @@
 #define _LOCKFREEQUEUE_RING_H_
 
 #include <stdint.h>
-#include <stdatomic.h>
+#include "misc.h"
 
 #define CACHE_ALIGNED   __attribute__((aligned(64)))
 
@@ -54,7 +54,7 @@ typedef struct
     2. count必须为2的幂，否则后果不可设想。
     3. init_head表示初始化的时候队列中有多少元素，把[0, init_head)由小到大入队。
  */
-inline __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t init_head)
+static __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t init_head)
 {
     uint64_t i;
     ring->node_count = count;
@@ -70,7 +70,7 @@ inline __always_inline void LFRing_init(LFRing *ring, uint32_t count, uint32_t i
 /*
     索引入队，返回该索引的序列号
  */
-inline __always_inline uint64_t LFRing_push(LFRing *ring, uint32_t id)
+static __always_inline uint64_t LFRing_push(LFRing *ring, uint32_t id)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
@@ -122,7 +122,7 @@ inline __always_inline uint64_t LFRing_push(LFRing *ring, uint32_t id)
 /*
     索引出队，out_seq可用于获取索引的序列号
  */
-inline __always_inline uint32_t LFRing_pop(LFRing *ring, int64_t *out_seq)
+static __always_inline uint32_t LFRing_pop(LFRing *ring, int64_t *out_seq)
 {
     uint64_t busy_loop = 0;
     uint64_t expired_node = 0;
@@ -188,7 +188,7 @@ inline __always_inline uint32_t LFRing_pop(LFRing *ring, int64_t *out_seq)
 /*
         获取LFRing结构体的总大小，count必须为2的幂
  */
-inline __always_inline uint64_t LFRing_size(uint32_t count)
+static __always_inline uint64_t LFRing_size(uint32_t count)
 {
     return sizeof(LFRingNode) * count + sizeof(LFRing);
 }
