@@ -124,7 +124,7 @@ static PyMethodDef module_methods[] = {
 
 static PyTypeObject PyLFQ_type = {
         PyVarObject_HEAD_INIT(NULL, 0)
-        "lfq.PyLFQ",    /* tp_name: For printing, in format "<module>.<name>" */
+        "pylfq.PyLFQ",    /* tp_name: For printing, in format "<module>.<name>" */
         sizeof(PyLFQ),  /* tp_basicsize */
         0,              /* tp_itemsize: For allocation */
         (destructor)PyLFQ_Dealloc,  /* tp_dealloc */
