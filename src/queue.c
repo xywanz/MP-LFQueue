@@ -8,7 +8,7 @@
 #include <string.h>
 
 
-int LFQueue_push(LFQueue *queue, void *buf, uint64_t size, uint64_t *seq)
+int LFQueue_push(LFQueue *queue, const void *buf, uint64_t size, uint64_t *seq)
 {
         uint32_t id;
         uint64_t push_seq;

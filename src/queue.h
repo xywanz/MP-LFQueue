@@ -66,7 +66,7 @@ typedef struct
 /*
     入队
  */
-int LFQueue_push(LFQueue *queue, void *buf, uint64_t size, uint64_t *seq);
+int LFQueue_push(LFQueue *queue, const void *buf, uint64_t size, uint64_t *seq);
 
 /*
     出队
