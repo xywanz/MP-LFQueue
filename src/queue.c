@@ -8,9 +8,10 @@
 #include <string.h>
 
 
-int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
+int LFQueue_push(LFQueue *queue, void *buf, uint64_t size, uint64_t *seq)
 {
-        int64_t id;
+        uint32_t id;
+        uint64_t push_seq;
         LFNode *n;
         LFHeader *header = queue->header;
 
@@ -21,10 +22,10 @@ int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
                 return -3;
 
         id = LFRing_pop(queue->resc_ring, NULL);
-        if (id < 0) {
+        if (id == LFRING_INVALID_ID) {
                 if (header->overwrite) {
                         id = LFRing_pop(queue->node_ring, NULL);
-                        if (id < 0)
+                        if (id == LFRING_INVALID_ID)
                                 return -1;
                 } else {
                         return -2;
@@ -34,20 +35,25 @@ int64_t LFQueue_push(LFQueue *queue, void *buf, uint64_t size)
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
         n->size = size;
         memcpy(n->data, buf, size);
-        return LFRing_push(queue->node_ring, id);
+        
+        push_seq = LFRing_push(queue->node_ring, id);
+        if (seq)
+                *seq = push_seq;
+        
+        return 0;
 }
 
-int64_t LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
+int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size, uint64_t *seq)
 {
-        int64_t id;
-        int64_t seq = -1L;
+        uint32_t id;
+        uint64_t pop_seq = -1L;
         LFNode *n;
         LFHeader *header = queue->header;
 
         do {
                 if (header->pause)
                         return -3;
-                id = LFRing_pop(queue->node_ring, &seq);
+                id = LFRing_pop(queue->node_ring, &pop_seq);
         } while (id < 0);
 
         n = (LFNode *)(queue->nodes + header->node_total_size * id);
@@ -55,9 +61,12 @@ int64_t LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size)
         
         if (size)
                 *size = n->size;
+        
+        if (seq)
+                *seq = pop_seq;
 
         LFRing_push(queue->resc_ring, id);
-        return seq;
+        return 0;
 }
 
 int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
