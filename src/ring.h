@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-static inline __always_inline uint32_t upper_power_of_two(uint32_t x)
+static __always_inline uint32_t upper_power_of_two(uint32_t x)
 {
     --x;
     x |= (x >> 1);
