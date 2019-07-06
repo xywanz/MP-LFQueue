@@ -1,5 +1,6 @@
 # LFQueue
-中文版README请往下翻
+[![Build Status](https://www.travis-ci.org/stormycatcat/LFQueue.svg?branch=master)](https://www.travis-ci.org/stormycatcat/LFQueue)
+<br>中文版README请往下翻
 ## 1. Introduction
 - This is a robust lockless queue used in multi processes through shared memory.
 - It can deal with the situation that any programs abort at any line.
