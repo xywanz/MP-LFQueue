@@ -1,0 +1,11 @@
+language: c
+c:
+sudo: false
+script:
+- mkdir build && cd build
+- cmake -DCMAKE_BUILD_TYPE=Release ..
+- make
+notifications:
+  email: kevin.lau.gd@gmail.com
+on_success: never
+on_failure: always
