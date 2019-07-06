@@ -1,10 +1,10 @@
-# FastestLocklessQueue
+# LFQueue
 中文版README请往下翻
 ## 1. Introduction
 - This is a robust lockless queue used in multi processes through shared memory.
 - It can deal with the situation that any programs abort at any line.
 - It's not the fastest lockless queue but the most robust one.
-- It's called FastedLocklessQueue because it's hard to change the name in Github. (=・ω・=)
+- (=・ω・=)
 - Welcome to show your better ideas.
 
 ## 2. Algorithm
@@ -93,7 +93,7 @@ python setup.py build_ext --inplace  # or python setup.py install
 <br>
 <br>
 
-# FastestLocklessQueue
+# LFQueue
 ## 1. 介绍
 - 这是一个多进程健壮的基于共享内存的无锁队列
 - 它可以应对进程在任何一行代码崩溃的情况，包括在queue内部
