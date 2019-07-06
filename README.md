@@ -107,8 +107,6 @@ python setup.py build_ext --inplace  # or python setup.py install
 - 所有的LFRing操作均是由CAS操作实现的。
 - 为什么说该队列能容忍程序在任意一行代码崩溃呢，请看阅读代码。
 <br>
-<br>
-
 Resouce ID Ring<br>
 ---------------------------<br>
 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |<br>
