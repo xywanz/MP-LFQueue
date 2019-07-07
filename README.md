@@ -37,7 +37,7 @@ Real Resource<br>
 
 ## 3. Usage
 #### C
-```
+```c
 #include "queue.h"
 
 int main()
@@ -60,7 +60,7 @@ int main()
 ```
 
 #### Python
-```
+```python
 import pylfq
 
 pylfq.create(1234, 64, 4096, True)
@@ -79,13 +79,13 @@ pylfq.destroy(1234)
 ```
 ## 4. Build
 #### C
-```
+```bash
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 #### Python
-```
+```bash
 cd python/pylfq
 python setup.py build_ext --inplace  # or python setup.py install
 ```
