@@ -1,3 +1,5 @@
+// Copyright [2020] <Copyright Kevin, kevin.lau.gd@gmail.com>
+
 #include "queue.h"
 
 #include <unistd.h>
@@ -69,6 +71,82 @@ int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size, uint64_t *seq)
         return 0;
 }
 
+int LFQueue_get_push_ptr(LFQueue *queue, void **pp, uint32_t *id_ptr, uint64_t size)
+{
+        uint32_t id;
+        uint64_t push_seq;
+        LFNode *n;
+        LFHeader *header = queue->header;
+
+        if (size > header->node_data_size)
+                return -1;
+
+        if (header->pause)
+                return -3;
+
+        id = LFRing_pop(queue->resc_ring, NULL);
+        if (id == LFRING_INVALID_ID) {
+                if (header->overwrite) {
+                        id = LFRing_pop(queue->node_ring, NULL);
+                        if (id == LFRING_INVALID_ID)
+                                return -1;
+                } else {
+                        return -2;
+                }
+        }
+
+        n = (LFNode *)(queue->nodes + header->node_total_size * id);
+        n->size = size;
+
+        *pp = n->data;
+        *id_ptr = id;
+        return 0;
+}
+
+uint64_t LFQueue_confirm_push(LFQueue *queue, uint32_t id)
+{
+        return LFRing_push(queue->node_ring, id);
+}
+
+int LFQueue_get_pop_ptr(LFQueue *queue,
+                        void **pp,
+                        uint64_t *size,
+                        uint32_t *id_ptr,
+                        uint64_t *seq)
+{
+        uint32_t id;
+        uint64_t pop_seq = -1L;
+        LFNode *n;
+        LFHeader *header = queue->header;
+
+        do {
+                if (header->pause)
+                        return -3;
+                id = LFRing_pop(queue->node_ring, &pop_seq);
+        } while (id < 0);
+
+        n = (LFNode *)(queue->nodes + header->node_total_size * id);
+        
+        if (pp)
+                *pp = n->data;
+
+        if (size)
+                *size = n->size;
+
+        *id_ptr = id;
+        
+        if (seq)
+                *seq = pop_seq;
+
+        
+        return 0;
+}
+
+void LFQueue_confirm_pop(LFQueue *queue, uint32_t id)
+{
+        LFRing_push(queue->resc_ring, id);
+}
+
 int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 {
         int shmid;
@@ -108,7 +186,7 @@ int LFQueue_create(int key, uint64_t data_size, uint32_t count, bool overwrite)
 
         m += ring_size;
         memset(m, 0, node_size * count);
-        
+
         return 0;
 }
 
@@ -125,7 +203,7 @@ void LFQueue_reset(LFQueue *queue)
 
         m += sizeof(LFHeader);
         LFRing_init((LFRing *)m, count, count);
-        
+
         m += ring_size;
         LFRing_init((LFRing *)m, count, 0);
 
@@ -141,7 +219,8 @@ int LFQueue_init(LFQueue *queue, void *mem)
         queue->header = (LFHeader *)m;
         if (queue->header->magic != QUEUE_MAGIC)
                 return -1;
-        ring_total_size = sizeof(LFRing) + queue->header->node_count * sizeof(LFRingNode);
+        ring_total_size = sizeof(LFRing) +
+                          queue->header->node_count * sizeof(LFRingNode);
 
         m += sizeof(LFHeader);
         queue->resc_ring = (LFRing *)m;
@@ -240,7 +319,8 @@ int LFQueue_dump(LFQueue *queue, const char *filename)
         LFHeader *header = queue->header;
         FILE *fp;
 
-        size = sizeof(LFHeader) + 2 * LFRing_size(header->node_count) + header->node_total_size * header->node_count;
+        size = sizeof(LFHeader) + 2 * LFRing_size(header->node_count) +
+               header->node_total_size * header->node_count;
 
         if ((fp = fopen(filename, "wb")) == NULL)
                 return -1;

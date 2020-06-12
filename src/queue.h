@@ -1,3 +1,5 @@
+// Copyright [2020] <Copyright Kevin, kevin.lau.gd@gmail.com>
+
 #ifndef _LOCKFREEQUEUE_QUEUE_H_
 #define _LOCKFREEQUEUE_QUEUE_H_
 
@@ -68,14 +70,30 @@ typedef struct
 } LFQueue;
 
 /*
-    入队
+    入队，一次拷贝
  */
 int LFQueue_push(LFQueue *queue, const void *buf, uint64_t size, uint64_t *seq);
 
 /*
-    出队
+    出队，一次拷贝
  */
 int LFQueue_pop(LFQueue *queue, void *buf, uint64_t *size, uint64_t *seq);
+
+/*
+ * 零拷贝入队方法，分两步走
+ */
+int LFQueue_get_push_ptr(LFQueue *queue, void **pp, uint32_t *id_ptr, uint64_t size);
+uint64_t LFQueue_confirm_push(LFQueue *queue, uint32_t id);
+
+/*
+ * 零拷贝出队，分两步走
+ */
+int LFQueue_get_pop_ptr(LFQueue *queue,
+                        void **pp,
+                        uint64_t *size,
+                        uint32_t *id_ptr,
+                        uint64_t *seq);
+void LFQueue_confirm_pop(LFQueue *queue, uint32_t id);
 
 /*
     分配共享内存，创建队列
