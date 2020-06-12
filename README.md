@@ -1,5 +1,5 @@
 # LFQueue
-[![Build Status](https://www.travis-ci.org/stormycatcat/LFQueue.svg?branch=master)](https://www.travis-ci.org/stormycatcat/LFQueue)
+[![Build Status](https://travis-ci.com/DuckDuckDuck0/MP-LFQueue.svg?token=WyN5wjE4y7gUya6EGJEK&branch=master)](https://travis-ci.com/DuckDuckDuck0/MP-LFQueue)
 <br>中文版README请往下翻
 ## 1. Introduction
 - This is a robust lockless queue used in multi processes through shared memory.
